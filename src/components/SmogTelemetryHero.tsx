@@ -5,7 +5,6 @@ import {
   ThermometerSnowflake,
   Wind,
 } from 'lucide-react';
-import { useState } from 'react';
 import { getAqiSeverityMeta } from '../services/airQualityService';
 import type {
   AirQualitySnapshot,
@@ -13,6 +12,7 @@ import type {
   LocationProfile,
 } from '../types/airQuality';
 import { getIndiaGrapAdvisory } from '../utils/impactCalculations';
+import { HourlyForecastChart } from './HourlyForecastChart';
 
 interface SmogTelemetryHeroProps {
   location: LocationProfile;
@@ -21,18 +21,18 @@ interface SmogTelemetryHeroProps {
   loading: boolean;
 }
 
+/**
+ * Displays live US AQI, WHO guideline multiples, India CPCB GRAP stage,
+ * pollutant gauges, and the 24-hour clean-air window forecast.
+ */
 export function SmogTelemetryHero({
   location,
   snapshot,
   plan,
   loading,
 }: SmogTelemetryHeroProps) {
-  const [selectedHourIdx, setSelectedHourIdx] = useState<number | null>(null);
   const meta = getAqiSeverityMeta(snapshot.usAqi, snapshot.pm25);
   const grap = getIndiaGrapAdvisory(snapshot.usAqi, snapshot.pm25);
-  const forecastSlice = snapshot.hourlyForecast.slice(0, 24);
-  const inspectedHour =
-    selectedHourIdx !== null ? forecastSlice[selectedHourIdx] : undefined;
 
   const pollutants = [
     {
@@ -65,18 +65,12 @@ export function SmogTelemetryHero({
     },
   ];
 
-  const maxAqi = Math.max(
-    180,
-    ...snapshot.hourlyForecast.map((h) => h.usAqi)
-  );
-
   return (
     <section
       aria-label="Live Air Quality Telemetry"
       className={`relative overflow-hidden rounded-2xl border border-slate-800/90 bg-gradient-to-br ${meta.gradientClass} via-slate-900/90 to-slate-950 p-5 shadow-2xl sm:p-6`}
     >
       <div className="grid gap-6 lg:grid-cols-12">
-        {/* Left: AQI Ring + Headline Guidance */}
         <div className="flex flex-col justify-between gap-4 lg:col-span-5">
           <div className="flex items-start gap-4">
             <div
@@ -114,7 +108,10 @@ export function SmogTelemetryHero({
                 </span>
                 {snapshot.inversionActive && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-sky-400/30 bg-sky-500/15 px-2.5 py-0.5 text-xs font-medium text-sky-200">
-                    <ThermometerSnowflake className="h-3.5 w-3.5" aria-hidden="true" />
+                    <ThermometerSnowflake
+                      className="h-3.5 w-3.5"
+                      aria-hidden="true"
+                    />
                     {snapshot.inversionSeverity} Thermal Inversion
                   </span>
                 )}
@@ -129,7 +126,6 @@ export function SmogTelemetryHero({
             </div>
           </div>
 
-          {/* Pollutant Bars */}
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {pollutants.map((p) => {
               const ratio = p.value / p.whoLimit;
@@ -180,7 +176,6 @@ export function SmogTelemetryHero({
           </div>
         </div>
 
-        {/* Right: 24-Hour Clean Air Window Forecast + Inversion Explanation */}
         <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-800/80 bg-slate-950/70 p-4 lg:col-span-7">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -199,90 +194,34 @@ export function SmogTelemetryHero({
             </div>
             <div className="flex items-center gap-3 text-[11px] text-slate-400">
               <span className="flex items-center gap-1">
-                <span aria-hidden="true" className="h-2.5 w-2.5 rounded-sm bg-emerald-400/80" />
+                <span
+                  aria-hidden="true"
+                  className="h-2.5 w-2.5 rounded-sm bg-emerald-400/80"
+                />
                 Best Window
               </span>
               <span className="flex items-center gap-1">
-                <span aria-hidden="true" className="h-2.5 w-2.5 rounded-sm bg-amber-400/80" />
+                <span
+                  aria-hidden="true"
+                  className="h-2.5 w-2.5 rounded-sm bg-amber-400/80"
+                />
                 Moderate/USG
               </span>
               <span className="flex items-center gap-1">
-                <span aria-hidden="true" className="h-2.5 w-2.5 rounded-sm bg-rose-500/80" />
+                <span
+                  aria-hidden="true"
+                  className="h-2.5 w-2.5 rounded-sm bg-rose-500/80"
+                />
                 Peak Smog
               </span>
             </div>
           </div>
 
-          {/* 24-Hour Interactive Bar Visualization */}
-          <div className="relative">
-            {inspectedHour && (
-              <div
-                aria-live="polite"
-                className="mb-1.5 flex items-center justify-between rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-[11px] text-cyan-100"
-              >
-                <span>
-                  Selected Hour: <strong className="font-mono">{inspectedHour.hourLabel}</strong>
-                </span>
-                <span className="font-mono">
-                  US AQI {inspectedHour.usAqi} • {inspectedHour.pm25} µg/m³ PM2.5
-                </span>
-              </div>
-            )}
-            <div
-              role="group"
-              aria-label={`24-hour AQI forecast chart highlighting cleanest window ${plan.bestOutdoorWindow.startLabel} to ${plan.bestOutdoorWindow.endLabel} at average AQI ${plan.bestOutdoorWindow.avgAqi}`}
-              className="relative flex h-32 items-end gap-1 pt-4"
-            >
-              {/* Safe 50 AQI Reference Line */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute right-0 left-0 border-t border-dashed border-emerald-400/35"
-                style={{ bottom: `${Math.min(85, Math.max(15, Math.round((50 / maxAqi) * 100)))}%` }}
-              />
-              {forecastSlice.map((pt, idx) => {
-                const heightPct = Math.max(12, Math.round((pt.usAqi / maxAqi) * 100));
-                const isBest =
-                  pt.hourLabel >= plan.bestOutdoorWindow.startLabel &&
-                  pt.hourLabel <= plan.bestOutdoorWindow.endLabel;
-                const isSelected = selectedHourIdx === idx;
-                const barColor = isBest
-                  ? 'bg-emerald-400/90 hover:bg-emerald-300'
-                  : pt.usAqi > 150
-                    ? 'bg-rose-500/80 hover:bg-rose-400'
-                    : 'bg-amber-400/75 hover:bg-amber-300';
-                return (
-                  <div
-                    key={`${pt.isoTime}-${idx}`}
-                    className="group relative flex h-full flex-1 flex-col items-center justify-end"
-                  >
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSelectedHourIdx(isSelected ? null : idx)
-                      }
-                      aria-pressed={isSelected}
-                      aria-label={`${pt.hourLabel}: AQI ${pt.usAqi}, PM2.5 ${pt.pm25} micrograms per cubic meter`}
-                      className={`w-full rounded-t-sm transition-all focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none ${barColor} ${
-                        isSelected ? 'ring-2 ring-white' : ''
-                      }`}
-                      style={{ height: `${heightPct}%` }}
-                    />
-                    {/* Tooltip */}
-                    <div className="pointer-events-none absolute -top-9 z-10 hidden rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 text-[10px] whitespace-nowrap text-slate-100 shadow-lg group-hover:block">
-                      {pt.hourLabel}: AQI {pt.usAqi} ({pt.pm25} µg/m³)
-                    </div>
-                    {idx % 4 === 0 && (
-                      <span className="mt-1.5 font-mono text-[9px] text-slate-500">
-                        {pt.hourLabel.slice(0, 2)}h
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <HourlyForecastChart
+            hourlyForecast={snapshot.hourlyForecast}
+            bestOutdoorWindow={plan.bestOutdoorWindow}
+          />
 
-          {/* Window Guidance + Inversion Note */}
           <div className="grid gap-2.5 sm:grid-cols-2">
             <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-3 text-xs text-emerald-100">
               <div className="mb-1 flex items-center gap-1.5 font-semibold text-emerald-300">
@@ -297,7 +236,9 @@ export function SmogTelemetryHero({
                 Indoor Reality &amp; GRAP Guidance
               </div>
               {plan.indoorVsOutdoorRatioNote}{' '}
-              {location.country === 'India' ? grap.summary : location.winterInversionNote ?? ''}
+              {location.country === 'India'
+                ? grap.summary
+                : (location.winterInversionNote ?? '')}
             </div>
           </div>
         </div>

@@ -40,7 +40,9 @@ describe('Dashboard Extended Flows & Modals', () => {
     // 1. Quick-switch to Mumbai via header strip
     await user.click(screen.getByRole('button', { name: 'Mumbai' }));
     await waitFor(() => {
-      expect(screen.getByText(/Mumbai, India/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Showing air quality plan for Mumbai, India/i)
+      ).toBeInTheDocument();
     });
 
     // 2. Search city combobox & pick Kolkata from dropdown
@@ -54,7 +56,9 @@ describe('Dashboard Extended Flows & Modals', () => {
     });
     await user.click(kolkataOption);
     await waitFor(() => {
-      expect(screen.getByText(/Kolkata, India/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Showing air quality plan for Kolkata, India/i)
+      ).toBeInTheDocument();
     });
 
     // 3. Adjust household size and toggle sensitivity + cooking source

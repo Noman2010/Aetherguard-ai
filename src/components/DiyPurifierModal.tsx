@@ -82,9 +82,10 @@ export function DiyPurifierModal({
           </div>
           <button
             type="button"
+            autoFocus
             aria-label="Close DIY purifier blueprint"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>

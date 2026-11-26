@@ -221,6 +221,10 @@ export function App() {
       />
 
       <main id="main-content" className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+        <div className="sr-only" role="status" aria-live="polite">
+          Showing air quality plan for {location.name}, {location.country} at US
+          AQI {snapshot.usAqi}.
+        </div>
         {locationNotice && (
           <div
             role="status"

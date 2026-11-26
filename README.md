@@ -28,27 +28,37 @@ A GenAI-powered decision-support assistant built to help families and urban comm
 ## Architecture
 
 ```text
-.github/workflows/ci.yml             # CI pipeline: typecheck, Vitest suite & Vite build
-vercel.json                          # Production HTTP security headers
+.github/workflows/ci.yml             # CI pipeline: oxlint, strict tsc, Vitest coverage & Vite build
+.prettierrc                          # Consistent code formatting rules
+vercel.json                          # Production HTTP security & CSP headers
 src/
 ├── types/airQuality.ts              # Telemetry, household profile, action & prompt types
+├── data/presetCities.ts             # Indian metro & global winter-smog watch locations
 ├── utils/
-│   ├── impactCalculations.ts        # Compounding PM2.5, lung-load & 100-home impact math
-│   └── impactCalculations.test.ts   # Unit tests for exposure & community bulletin formulas
+│   ├── impactCalculations.ts        # Compounding PM2.5, GRAP stages, INR savings & RWA scaling
+│   └── impactCalculations.test.ts   # Unit tests for exposure, GRAP & community bulletin math
 ├── services/
-│   ├── airQualityService.ts         # Open-Meteo geocoding, AQI/weather fetch, inversion & fallback
+│   ├── airQualityService.ts         # Open-Meteo geocoding, AQI/weather fetch & fallback cache
 │   ├── airQualityService.test.ts    # Service tests (live parsing, smog sim & offline fallback)
-│   ├── genAiService.ts              # Structured prompt builder, Gemini 2.5 Flash JSON API & Q&A advisor
+│   ├── geminiClient.ts              # Gemini 2.5 Flash API client, prompt builder & JSON validator
+│   ├── recommendationEngine.ts      # 4-pillar recommendation & 3-phase timeline synthesis
+│   ├── genAiService.ts              # Plan orchestration & context-grounded Q&A advisor
 │   └── genAiService.test.ts         # Prompt grounding, Gemini API & advisor tests
 ├── components/
 │   ├── ErrorBoundary.tsx            # Top-level graceful React error boundary
-│   ├── HeaderBar.tsx                # City search combobox, GPS detect, Severe Smog Sim toggle
-│   ├── SmogTelemetryHero.tsx        # US AQI gauge, WHO multiples, 24h clean-air window bar chart
-│   ├── ImpactSimulatorPanel.tsx     # Compounding PM2.5, CO2e & Share Neighborhood Alert button
+│   ├── ErrorBoundary.test.tsx       # ErrorBoundary recovery unit tests
+│   ├── HeaderBar.tsx                # City search combobox, Indian metro pills & GPS detect
+│   ├── SmogTelemetryHero.tsx        # US AQI gauge, WHO multiples & India GRAP stage card
+│   ├── HourlyForecastChart.tsx      # Interactive 24h dispersion bar chart with hour inspector
+│   ├── ImpactSimulatorPanel.tsx     # INR savings, RWA scale slider & notice download/share
+│   ├── ExposureComparisonBar.tsx    # Before vs. With Committed Choices PM2.5 exposure bar
 │   ├── LifestyleConfigurator.tsx    # Accessible household, health, mobility, fuel & purifier controls
-│   ├── ActionPlanBoard.tsx          # Tabbed 4-pillar action cards + Commit Action toggles
+│   ├── ActionPlanBoard.tsx          # 3-phase daily schedule & category filter tabs
+│   ├── ActionCard.tsx               # Modular recommendation card with direct impact breakdown
+│   ├── DiyPurifierModal.tsx         # ₹3,200 DIY Corsi-Rosenthal filter cube assembly blueprint
 │   ├── GenAIChatDrawer.tsx          # Context-grounded conversational advisor with starter prompts
-│   └── PromptInspectorModal.tsx     # Accessible modal for prompt JSON & Gemini API key config
+│   ├── PromptInspectorModal.tsx     # Accessible modal for prompt JSON & Gemini API key config
+│   └── DashboardFlows.test.tsx      # Extended modal, city switcher & chart interaction tests
 ├── App.tsx                          # State orchestration and real-time plan synthesis
 └── App.test.tsx                     # End-to-end UI integration tests (Testing Library + Vitest)
 ```

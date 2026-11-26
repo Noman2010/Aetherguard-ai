@@ -20,6 +20,7 @@ import {
   buildCommunityBulletinText,
   calculateHouseholdImpact,
 } from '../utils/impactCalculations';
+import { ExposureComparisonBar } from './ExposureComparisonBar';
 
 interface ImpactSimulatorPanelProps {
   location: LocationProfile;
@@ -29,6 +30,10 @@ interface ImpactSimulatorPanelProps {
   adoptedIds: string[];
 }
 
+/**
+ * Interactive impact simulator projecting personal PM2.5 exposure drops,
+ * monthly INR savings, CO2e avoided, and RWA/ward community scale.
+ */
 export function ImpactSimulatorPanel({
   location,
   snapshot,
@@ -47,22 +52,13 @@ export function ImpactSimulatorPanel({
     communityHomes
   );
 
-  const baselineBarPct = Math.min(
-    100,
-    Math.max(15, Math.round((summary.baselinePersonalPm25 / Math.max(50, snapshot.pm25)) * 100))
-  );
-  const protectedBarPct =
-    summary.baselinePersonalPm25 > 0
-      ? Math.max(
-          6,
-          Math.round(
-            (summary.protectedPersonalPm25 / Math.max(50, snapshot.pm25)) * 100
-          )
-        )
-      : 0;
-
   function handleCopyBulletin() {
-    const bulletin = buildCommunityBulletinText(location, snapshot, plan, summary);
+    const bulletin = buildCommunityBulletinText(
+      location,
+      snapshot,
+      plan,
+      summary
+    );
     if (navigator.clipboard?.writeText) {
       void navigator.clipboard.writeText(bulletin);
     }
@@ -71,7 +67,12 @@ export function ImpactSimulatorPanel({
   }
 
   function handleDownloadNotice() {
-    const bulletin = buildCommunityBulletinText(location, snapshot, plan, summary);
+    const bulletin = buildCommunityBulletinText(
+      location,
+      snapshot,
+      plan,
+      summary
+    );
     const blob = new Blob([bulletin], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -133,45 +134,12 @@ export function ImpactSimulatorPanel({
         </div>
       </div>
 
-      {/* Before vs After Exposure Bar */}
-      <div className="mb-4 rounded-xl border border-slate-800/90 bg-slate-950/80 p-3.5">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <span className="font-semibold text-slate-200">
-            Your Personal PM2.5 Exposure: Before vs. With Committed Choices
-          </span>
-          <span className="font-mono text-emerald-300">
-            {summary.baselinePersonalPm25} µg/m³ → {summary.protectedPersonalPm25} µg/m³
-          </span>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 text-[11px]">
-            <span className="w-28 shrink-0 text-slate-400">Without Action</span>
-            <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-800">
-              <div
-                className="h-full rounded-full bg-rose-500/80 transition-all"
-                style={{ width: `${baselineBarPct}%` }}
-              />
-            </div>
-            <span className="w-20 text-right font-mono text-rose-300">
-              {summary.baselinePersonalPm25} µg/m³
-            </span>
-          </div>
-          <div className="flex items-center gap-3 text-[11px]">
-            <span className="w-28 shrink-0 text-emerald-300">With Your Plan</span>
-            <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-800">
-              <div
-                className="h-full rounded-full bg-emerald-400 transition-all"
-                style={{ width: `${protectedBarPct}%` }}
-              />
-            </div>
-            <span className="w-20 text-right font-mono text-emerald-300">
-              {summary.protectedPersonalPm25} µg/m³
-            </span>
-          </div>
-        </div>
-      </div>
+      <ExposureComparisonBar
+        outdoorPm25={snapshot.pm25}
+        baselinePersonalPm25={summary.baselinePersonalPm25}
+        protectedPersonalPm25={summary.protectedPersonalPm25}
+      />
 
-      {/* 5 Impact Metric Tiles */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <div className="rounded-xl border border-slate-800/90 bg-slate-950/75 p-3.5">
           <div className="flex items-center justify-between text-xs text-slate-400">
@@ -257,7 +225,6 @@ export function ImpactSimulatorPanel({
         </div>
       </div>
 
-      {/* Community Narrative */}
       <div className="mt-3 rounded-xl border border-indigo-500/25 bg-indigo-500/10 px-3.5 py-2.5 text-xs text-indigo-100">
         <span className="font-semibold text-indigo-300">
           Why Your Choices Matter Locally:{' '}

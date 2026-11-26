@@ -1,3 +1,4 @@
+import { PRESET_CITIES } from '../data/presetCities';
 import type {
   AirQualitySnapshot,
   AqiSeverityMeta,
@@ -5,75 +6,12 @@ import type {
   LocationProfile,
 } from '../types/airQuality';
 
-export const PRESET_CITIES: LocationProfile[] = [
-  {
-    id: 'delhi-in',
-    name: 'New Delhi',
-    region: 'Delhi NCR',
-    country: 'India',
-    latitude: 28.6139,
-    longitude: 77.209,
-    timezone: 'Asia/Kolkata',
-    winterInversionNote:
-      'Indo-Gangetic cold air pooling traps traffic, dust, and biomass smoke below 200m.',
-  },
-  {
-    id: 'lahore-pk',
-    name: 'Lahore',
-    region: 'Punjab',
-    country: 'Pakistan',
-    latitude: 31.5204,
-    longitude: 74.3587,
-    timezone: 'Asia/Karachi',
-    winterInversionNote:
-      'Low winter wind speeds and high humidity accelerate secondary PM2.5 haze formation.',
-  },
-  {
-    id: 'mumbai-in',
-    name: 'Mumbai',
-    region: 'Maharashtra',
-    country: 'India',
-    latitude: 19.076,
-    longitude: 72.8777,
-    timezone: 'Asia/Kolkata',
-    winterInversionNote:
-      'Calm winter land-sea breeze reversals trap construction dust and coastal traffic haze.',
-  },
-  {
-    id: 'kolkata-in',
-    name: 'Kolkata',
-    region: 'West Bengal',
-    country: 'India',
-    latitude: 22.5726,
-    longitude: 88.3639,
-    timezone: 'Asia/Kolkata',
-    winterInversionNote:
-      'Lower Gangetic winter fog binds with coal/diesel soot to elevate morning PM2.5.',
-  },
-  {
-    id: 'bengaluru-in',
-    name: 'Bengaluru',
-    region: 'Karnataka',
-    country: 'India',
-    latitude: 12.9716,
-    longitude: 77.5946,
-    timezone: 'Asia/Kolkata',
-    winterInversionNote:
-      'Chilly December–January mornings concentrate arterial corridor traffic exhaust.',
-  },
-  {
-    id: 'london-gb',
-    name: 'London',
-    region: 'Greater London',
-    country: 'United Kingdom',
-    latitude: 51.5074,
-    longitude: -0.1278,
-    timezone: 'Europe/London',
-    winterInversionNote:
-      'Calm frosty mornings elevate roadside NO2 and residential wood-burning PM2.5.',
-  },
-];
+export { PRESET_CITIES };
 
+/**
+ * Maps US AQI and PM2.5 concentrations to severity labels, Tailwind badge
+ * styles, and WHO 24-hour guideline multiples (15 µg/m³).
+ */
 export function getAqiSeverityMeta(usAqi: number, pm25: number): AqiSeverityMeta {
   const whoMultiple = Math.max(0.1, Number((pm25 / 15).toFixed(1)));
   if (usAqi <= 50) {
@@ -146,8 +84,6 @@ function buildDiurnalForecast(
   for (let offset = 0; offset < 24; offset++) {
     const dt = new Date(now.getTime() + offset * 3600_000);
     const hour = dt.getHours();
-    // Winter smog peaks during morning rush/inversion (7-10) and evening inversion (19-23),
-    // with a convective boundary-layer dip in afternoon (13-16).
     let factor = 1.0;
     if (hour >= 13 && hour <= 16) {
       factor = severeMode ? 0.68 : 0.72;
@@ -174,7 +110,12 @@ function buildDiurnalForecast(
   return points;
 }
 
-export function buildSimulatedSevereSmog(location: LocationProfile): AirQualitySnapshot {
+/**
+ * Generates a realistic severe winter inversion snapshot for crisis demos.
+ */
+export function buildSimulatedSevereSmog(
+  location: LocationProfile
+): AirQualitySnapshot {
   const isSouthAsia =
     location.country === 'India' || location.country === 'Pakistan';
   const baseAqi = isSouthAsia ? 338 : 246;
@@ -198,11 +139,12 @@ export function buildSimulatedSevereSmog(location: LocationProfile): AirQualityS
   };
 }
 
+/**
+ * Searches matching urban locations via Open-Meteo Geocoding with local fallback.
+ */
 export async function searchCities(query: string): Promise<LocationProfile[]> {
   const trimmed = query.trim();
-  if (!trimmed) {
-    return PRESET_CITIES;
-  }
+  if (!trimmed) return PRESET_CITIES;
 
   try {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
@@ -256,6 +198,10 @@ function deriveInversionSeverity(
   return { active: false, severity: 'Low' };
 }
 
+/**
+ * Fetches live air quality and meteorological telemetry for a location,
+ * or returns a deterministic winter smog snapshot when simulated or offline.
+ */
 export async function fetchAirQualityForLocation(
   location: LocationProfile,
   simulateSevereSmog: boolean
@@ -265,7 +211,7 @@ export async function fetchAirQualityForLocation(
   }
 
   try {
-    const aqUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${location.latitude}&longitude=${location.longitude}&current=us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone&hourly=pm2_5,us_aqi&forecast_days=2&timezone=auto`;
+    const aqUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${location.latitude}&longitude=${location.longitude}&current=us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone&hourly=pm_2_5,us_aqi&forecast_days=2&timezone=auto`;
     const wxUrl = `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=auto`;
 
     const [aqRes, wxRes] = await Promise.all([fetch(aqUrl), fetch(wxUrl)]);
@@ -286,7 +232,7 @@ export async function fetchAirQualityForLocation(
       };
       hourly?: {
         time?: string[];
-        pm2_5?: number[];
+        pm_2_5?: number[];
         us_aqi?: number[];
       };
     };
@@ -306,13 +252,11 @@ export async function fetchAirQualityForLocation(
     const temp = Number((currentWx.temperature_2m ?? 11.2).toFixed(1));
     const wind = Number((currentWx.wind_speed_10m ?? 6.4).toFixed(1));
     const humidity = Math.round(currentWx.relative_humidity_2m ?? 72);
-
     const inv = deriveInversionSeverity(wind, temp, pm25);
 
-    // Slice the next 24 hourly forecast points starting near current hour
     const times = aqJson.hourly?.time ?? [];
     const hourlyAqi = aqJson.hourly?.us_aqi ?? [];
-    const hourlyPm25 = aqJson.hourly?.pm2_5 ?? [];
+    const hourlyPm25 = aqJson.hourly?.pm_2_5 ?? [];
     const nowMs = Date.now();
     let startIdx = times.findIndex((t) => new Date(t).getTime() >= nowMs - 3600_000);
     if (startIdx < 0) startIdx = 0;
@@ -356,7 +300,6 @@ export async function fetchAirQualityForLocation(
           : buildDiurnalForecast(pm25, usAqi, usAqi > 180),
     };
   } catch {
-    // Graceful realistic fallback if offline or API blocked
     const fallback = buildSimulatedSevereSmog(location);
     return {
       ...fallback,
