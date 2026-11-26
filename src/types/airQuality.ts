@@ -98,7 +98,7 @@ export interface ActionRecommendation {
   title: string;
   summary: string;
   timingWindow: string;
-  costLevel: 'Free' | 'Low ($)' | 'Moderate ($$)';
+  costLevel: 'Free' | 'Low (₹)' | 'Moderate (₹₹)';
   effort: 'Instant' | '15 mins' | 'Habit shift';
   tailoredReason: string;
   impact: ActionImpact;

@@ -75,7 +75,7 @@ export function buildStructuredPrompt(
     '1. Ground every recommendation in the provided live telemetry (AQI, PM2.5, NO2, wind speed, thermal inversion state) and household constraints.',
     '2. Provide 4 pillars: Low-Emission Daily Routines, Indoor Air Quality Hacks, Sustainable Alternatives, and Community Multiplier Actions.',
     '3. Quantify the DIRECT IMPACT of each action (personal PM2.5 exposure reduction %, daily inhaled µg avoided, weekly CO2e saved) and explain the physical/health mechanism clearly in plain language.',
-    '4. Prioritize zero-cost or low-cost hacks when purifierAccess is "none" or "diy-corsirosenthal", and prioritize sensitive groups (asthma, infants, seniors) if present.',
+    '4. Prioritize zero-cost or low-cost hacks in Indian Rupees (INR / ₹) when purifierAccess is "none" or "diy-corsirosenthal", and prioritize sensitive groups (asthma, infants, seniors) if present.',
   ].join('\n');
 
   const contextPayload = JSON.stringify(
@@ -177,7 +177,7 @@ function buildDeterministicRecommendations(
     summary:
       'Switch transit/car HVAC to internal recirculation on arterial roads and wear a snug N95/KF94 outdoors whenever PM2.5 exceeds 35 µg/m³.',
     timingWindow: 'Morning & Evening Rush',
-    costLevel: 'Low ($)',
+    costLevel: 'Low (₹)',
     effort: 'Instant',
     tailoredReason: `At ${snapshot.pm25} µg/m³ PM2.5 (${(
       snapshot.pm25 / 15
@@ -198,11 +198,11 @@ function buildDeterministicRecommendations(
     recs.push({
       id: 'indoor-diy-cr-box',
       category: 'indoor-hack',
-      title: 'Build a $38 DIY Corsi-Rosenthal Clean-Air Cube',
+      title: 'Build a ₹3,200 DIY Corsi-Rosenthal Clean-Air Cube',
       summary:
-        'Tape four MERV-13 furnace filters into a cube with a standard 20-inch box fan (plus a cardboard shroud) to create a hospital-grade bedroom purifier.',
+        'Tape four MERV-13 / HEPA-grade furnace filters into a cube with a standard 20-inch box fan (plus a cardboard shroud) to create a high-CADR bedroom purifier.',
       timingWindow: 'Run Continuous (Low Speed at Night)',
-      costLevel: 'Low ($)',
+      costLevel: 'Low (₹)',
       effort: '15 mins',
       tailoredReason: `Essential because you currently have no HEPA purifier during ${snapshot.inversionSeverity.toLowerCase()} smog (${sensitiveText}).`,
       impact: {
@@ -210,7 +210,7 @@ function buildDeterministicRecommendations(
         pm25AvoidedUgPerDay: Math.round(snapshot.pm25 * 3.4),
         co2SavedKgPerWeek: 2.1,
         mechanism:
-          'Delivers 400–600 CFM Clean Air Delivery Rate (CADR) using ~55W, outperforming many $300 commercial purifiers at 1/7th the cost and zero proprietary filter waste.',
+          'Delivers 400–600 CFM Clean Air Delivery Rate (CADR) using ~55W, outperforming many ₹25,000 commercial purifiers at ~1/7th the cost and zero proprietary filter waste.',
         plainExplanation:
           'Drops indoor bedroom PM2.5 by 60–75% within 45 minutes so lungs recover overnight instead of inhaling smog for 8 hours.',
       },
@@ -276,7 +276,7 @@ function buildDeterministicRecommendations(
       summary:
         'Replace dry broom sweeping with microfiber damp-mopping and apply removable painter’s tape or foam strips to drafty window seams until spring.',
       timingWindow: 'Once Weekly + Daily Micro-Wipe',
-      costLevel: 'Low ($)',
+      costLevel: 'Low (₹)',
       effort: '15 mins',
       tailoredReason: `Stops outdoor ${snapshot.pm10} µg/m³ coarse dust and smog from infiltrating via ${profile.homeVentilation.replace(
         '-',
@@ -305,7 +305,7 @@ function buildDeterministicRecommendations(
     summary:
       'Replace backup diesel/wood heaters, incense, and candles with electric radiant/heat-pump warmth, LED ambient lighting, and e-bike or transit passes for short <5 km trips.',
     timingWindow: 'All Winter Season',
-    costLevel: 'Moderate ($$)',
+    costLevel: 'Moderate (₹₹)',
     effort: 'Habit shift',
     tailoredReason: `Short <5 km combustion trips and indoor flame sources drive a disproportionate share of ${location.name}'s street-level NO₂ (${snapshot.no2} µg/m³).`,
     impact: {
@@ -385,7 +385,7 @@ export async function generatePersonalizedPlan(
   // Optional live Google Gemini API call when user supplies an API key
   if (geminiApiKey && geminiApiKey.trim().length > 12) {
     try {
-      const promptText = `${systemPrompt}\n\nLIVE HOUSEHOLD & TELEMETRY CONTEXT:\n${contextPayload}\n\nReturn strictly valid JSON with keys: "headlineGuidance" (string), "smogBriefing" (string), "indoorVsOutdoorRatioNote" (string), "communityMultiplierNote" (string), and "recommendations" (array of 6 objects matching: id, category one of ["routine","indoor-hack","sustainable-alt","community"], title, summary, timingWindow, costLevel one of ["Free","Low ($)","Moderate ($$)"], effort one of ["Instant","15 mins","Habit shift"], tailoredReason, impact: { personalExposureDropPct (number 5-75), pm25AvoidedUgPerDay (number), co2SavedKgPerWeek (number), mechanism (string), plainExplanation (string) }).`;
+      const promptText = `${systemPrompt}\n\nLIVE HOUSEHOLD & TELEMETRY CONTEXT:\n${contextPayload}\n\nReturn strictly valid JSON with keys: "headlineGuidance" (string), "smogBriefing" (string), "indoorVsOutdoorRatioNote" (string), "communityMultiplierNote" (string), and "recommendations" (array of 6 objects matching: id, category one of ["routine","indoor-hack","sustainable-alt","community"], title, summary, timingWindow, costLevel one of ["Free","Low (₹)","Moderate (₹₹)"], effort one of ["Instant","15 mins","Habit shift"], tailoredReason, impact: { personalExposureDropPct (number 5-75), pm25AvoidedUgPerDay (number), co2SavedKgPerWeek (number), mechanism (string), plainExplanation (string) }). Express all monetary figures in Indian Rupees (INR / ₹).`;
 
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
@@ -565,13 +565,14 @@ export async function askAetherGuardAdvisor(
     q.includes('purifier') ||
     q.includes('cheap')
   ) {
-    content = `To build a Corsi-Rosenthal clean-air cube (~$35–$45): tape 4 square MERV-13 filters (20"×20"×1") with airflow arrows pointing INWARD, add a cardboard bottom, and tape a 20-inch box fan on top blowing UP (mask corners of the fan face with a cardboard shroud to stop backflow). Place it in the main bedroom on low/medium.`;
+    content = `To build a Corsi-Rosenthal clean-air cube (~₹2,800–₹3,800): tape 4 square MERV-13 filters (20"×20"×1") with airflow arrows pointing INWARD, add a cardboard bottom, and tape a standard box/exhaust fan on top blowing UP (mask corners of the fan face with a cardboard shroud to stop backflow). Place it in the main bedroom on low/medium.`;
     impactSummary = `Delivers ~450 CFM clean air—cutting bedroom PM2.5 from ~${Math.round(
       snapshot.pm25 * 0.7
     )} µg/m³ down toward 12–18 µg/m³ in 45 minutes.`;
   } else if (
     q.includes('community') ||
     q.includes('neighbor') ||
+    q.includes('rwa') ||
     q.includes('hoa') ||
     q.includes('apartment') ||
     q.includes('ward')

@@ -20,8 +20,8 @@ interface GenAIChatDrawerProps {
 const STARTER_PROMPTS = [
   'Should we open windows today?',
   'Can kids walk to school safely?',
-  'How to build a $38 DIY purifier?',
-  'Best apartment HOA winter pact?',
+  'How to build a ₹3,200 DIY purifier?',
+  'Best RWA / apartment winter pact?',
 ];
 
 export function GenAIChatDrawer({

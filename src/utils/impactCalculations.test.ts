@@ -55,7 +55,7 @@ const SAMPLE_PLAN: GenAIPlan = {
       title: 'DIY Corsi-Rosenthal Cube',
       summary: 'Filter bedroom air',
       timingWindow: 'Continuous',
-      costLevel: 'Low ($)',
+      costLevel: 'Low (₹)',
       effort: '15 mins',
       tailoredReason: 'No HEPA purifier',
       impact: {
@@ -72,7 +72,7 @@ const SAMPLE_PLAN: GenAIPlan = {
       title: 'Induction Cooking',
       summary: 'Replace gas flame',
       timingWindow: 'Daily',
-      costLevel: 'Moderate ($$)',
+      costLevel: 'Moderate (₹₹)',
       effort: 'Habit shift',
       tailoredReason: 'Gas stove without hood',
       impact: {

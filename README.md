@@ -14,7 +14,7 @@ A GenAI-powered decision-support assistant built to help families and urban comm
 - **Household & Lifestyle Context Engine**
   - Adapts plans dynamically across household role, size, health sensitivities (asthma, infants, seniors, outdoor workers), daily mobility, cooking/heating fuel, indoor filtration access, and home envelope tightness.
 - **4-Pillar GenAI Action Plan + Direct Impact Explained**
-  - Generates tailored actions across **Low-Emission Daily Routines**, **Indoor Air Quality Hacks** (e.g., \$38 DIY Corsi-Rosenthal filter cube, positive-pressure sleep sanctuary, unvented cooking mitigation), **Sustainable Alternatives**, and **Community Multipliers**.
+  - Generates tailored actions across **Low-Emission Daily Routines**, **Indoor Air Quality Hacks** (e.g., ₹3,200 DIY Corsi-Rosenthal filter cube, positive-pressure sleep sanctuary, unvented cooking mitigation), **Sustainable Alternatives**, and **Community Multipliers**.
   - Every recommendation displays quantified `Exposure Drop %`, `PM2.5 Avoided/day`, `CO₂ Cut/week`, a plain-language **Direct Impact Explained** summary, and an expandable **Science Mechanism** card.
 - **Interactive Direct Impact Simulator**
   - Computes compounding personal PM2.5 exposure reduction (capped at 86% to model realistic diminishing returns), daily fine soot avoided (`mg/day`), Berkeley Earth cigarette-equivalent lung load spared, weekly CO₂e cut, and **100-Home Ward Scale** winter savings.
