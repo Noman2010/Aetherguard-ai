@@ -38,6 +38,8 @@ export function HeaderBar({
   const [results, setResults] = useState<LocationProfile[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  const quickCities = PRESET_CITIES.slice(0, 4);
+
   async function handleSearchChange(value: string) {
     setQuery(value);
     setDropdownOpen(true);
@@ -46,8 +48,8 @@ export function HeaderBar({
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3.5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+    <header className="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
         {/* Brand + Status */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -56,7 +58,7 @@ export function HeaderBar({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-bold tracking-tight text-white sm:text-lg">
+                <h1 className="text-base font-extrabold tracking-tight text-white sm:text-lg">
                   AetherGuard AI
                 </h1>
                 <span className="inline-flex items-center gap-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[11px] font-medium text-cyan-300">
@@ -72,8 +74,8 @@ export function HeaderBar({
         </div>
 
         {/* City Search + Controls */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="relative flex-1 sm:w-64 sm:flex-initial">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 sm:w-56 sm:flex-initial">
             <Search
               className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400"
               aria-hidden="true"
@@ -174,11 +176,11 @@ export function HeaderBar({
         </div>
       </div>
 
-      {/* Live Source Strip */}
+      {/* Live Source + 1-Click Indian Metro Quick Switcher Strip */}
       {snapshot && (
         <div className="border-t border-slate-800/60 bg-slate-900/40 px-4 py-1.5 sm:px-6">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span
                 aria-hidden="true"
                 className={`h-2 w-2 rounded-full ${
@@ -191,11 +193,36 @@ export function HeaderBar({
               />
               <span>
                 {snapshot.source === 'live-api'
-                  ? 'Live Open-Meteo Atmospheric & Air Quality Telemetry'
+                  ? 'Live Open-Meteo Telemetry'
                   : snapshot.source === 'severe-smog-sim'
-                    ? 'Severe Winter Inversion Crisis Simulation Active'
-                    : 'Cached Urban Smog Baseline (Offline Fallback)'}
+                    ? 'Severe Winter Inversion Crisis Sim'
+                    : 'Cached Urban Smog Baseline'}
               </span>
+              <span className="hidden text-slate-600 sm:inline">|</span>
+              <div
+                role="group"
+                aria-label="Quick switch Indian cities"
+                className="flex flex-wrap items-center gap-1"
+              >
+                {quickCities.map((city) => {
+                  const active = city.id === location.id;
+                  return (
+                    <button
+                      key={city.id}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => onSelectLocation(city)}
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition ${
+                        active
+                          ? 'bg-cyan-500/20 text-cyan-200 ring-1 ring-cyan-400/50'
+                          : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 hover:text-white'
+                      }`}
+                    >
+                      {city.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="font-mono text-slate-400">
               {location.name}, {location.country} • {snapshot.temperatureC}°C •{' '}

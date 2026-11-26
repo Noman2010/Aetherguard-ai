@@ -2,6 +2,7 @@ import {
   Award,
   Check,
   CigaretteOff,
+  Download,
   IndianRupee,
   Leaf,
   Share2,
@@ -69,6 +70,17 @@ export function ImpactSimulatorPanel({
     setTimeout(() => setCopiedBulletin(false), 2000);
   }
 
+  function handleDownloadNotice() {
+    const bulletin = buildCommunityBulletinText(location, snapshot, plan, summary);
+    const blob = new Blob([bulletin], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `aetherguard-${location.name.toLowerCase().replace(/\s+/g, '-')}-rwa-alert.txt`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <section
       aria-label="Direct Impact Simulator"
@@ -91,23 +103,34 @@ export function ImpactSimulatorPanel({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleCopyBulletin}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-500/25"
-        >
-          {copiedBulletin ? (
-            <>
-              <Check className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true" />
-              Neighborhood Alert Copied
-            </>
-          ) : (
-            <>
-              <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
-              Share Neighborhood Alert
-            </>
-          )}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleCopyBulletin}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-500/25"
+          >
+            {copiedBulletin ? (
+              <>
+                <Check className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true" />
+                Neighborhood Alert Copied
+              </>
+            ) : (
+              <>
+                <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
+                Share Neighborhood Alert
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadNotice}
+            aria-label="Download RWA clean-air notice"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-cyan-400/50 hover:text-cyan-200"
+          >
+            <Download className="h-3.5 w-3.5 text-cyan-400" aria-hidden="true" />
+            Download Notice
+          </button>
+        </div>
       </div>
 
       {/* Before vs After Exposure Bar */}

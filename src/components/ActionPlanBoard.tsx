@@ -9,6 +9,7 @@ import {
   Sparkles,
   Users,
   Wind,
+  Wrench,
 } from 'lucide-react';
 import { useState } from 'react';
 import type {
@@ -16,9 +17,11 @@ import type {
   ActionRecommendation,
   GenAIPlan,
 } from '../types/airQuality';
+import { DiyPurifierModal } from './DiyPurifierModal';
 
 interface ActionPlanBoardProps {
   plan: GenAIPlan;
+  outdoorPm25: number;
   adoptedIds: string[];
   onToggleAdopt: (id: string) => void;
   onRegenerate: () => void;
@@ -67,6 +70,7 @@ function getCategoryMeta(cat: ActionCategory) {
 
 export function ActionPlanBoard({
   plan,
+  outdoorPm25,
   adoptedIds,
   onToggleAdopt,
   onRegenerate,
@@ -76,6 +80,7 @@ export function ActionPlanBoard({
   const [expandedWhyId, setExpandedWhyId] = useState<string | null>(
     plan.recommendations[0]?.id ?? null
   );
+  const [diyGuideOpen, setDiyGuideOpen] = useState(false);
 
   const visibleRecs =
     activeTab === 'all'
@@ -190,6 +195,7 @@ export function ActionPlanBoard({
           const CatIcon = catMeta.Icon;
           const isAdopted = adoptedIds.includes(rec.id);
           const isExpanded = expandedWhyId === rec.id;
+          const isDiyCard = rec.id === 'indoor-diy-cr-box';
 
           return (
             <article
@@ -304,38 +310,58 @@ export function ActionPlanBoard({
                 </div>
               </div>
 
-              {/* Footer: Timing + Commit Toggle */}
-              <div className="mt-4 flex items-center justify-between border-t border-slate-800/70 pt-3">
+              {/* Footer: Timing + Optional DIY Blueprint + Commit Toggle */}
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800/70 pt-3">
                 <span className="text-[11px] font-medium text-slate-400">
                   Window: <span className="text-slate-200">{rec.timingWindow}</span>
                 </span>
-                <button
-                  type="button"
-                  aria-pressed={isAdopted}
-                  onClick={() => onToggleAdopt(rec.id)}
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
-                    isAdopted
-                      ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/30 hover:bg-emerald-400'
-                      : 'border border-slate-700 bg-slate-950 text-slate-200 hover:border-emerald-400/50 hover:text-emerald-200'
-                  }`}
-                >
-                  {isAdopted ? (
-                    <>
-                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                      Committed
-                    </>
-                  ) : (
-                    <>
-                      <Circle className="h-3.5 w-3.5" aria-hidden="true" />
-                      Commit Action
-                    </>
+                <div className="flex items-center gap-2">
+                  {isDiyCard && (
+                    <button
+                      type="button"
+                      onClick={() => setDiyGuideOpen(true)}
+                      className="inline-flex items-center gap-1 rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-cyan-200 transition hover:bg-cyan-500/20"
+                    >
+                      <Wrench className="h-3 w-3" aria-hidden="true" />
+                      Build Guide
+                    </button>
                   )}
-                </button>
+                  <button
+                    type="button"
+                    aria-pressed={isAdopted}
+                    onClick={() => onToggleAdopt(rec.id)}
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                      isAdopted
+                        ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/30 hover:bg-emerald-400'
+                        : 'border border-slate-700 bg-slate-950 text-slate-200 hover:border-emerald-400/50 hover:text-emerald-200'
+                    }`}
+                  >
+                    {isAdopted ? (
+                      <>
+                        <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                        Committed
+                      </>
+                    ) : (
+                      <>
+                        <Circle className="h-3.5 w-3.5" aria-hidden="true" />
+                        Commit Action
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </article>
           );
         })}
       </div>
+
+      {diyGuideOpen && (
+        <DiyPurifierModal
+          open={diyGuideOpen}
+          outdoorPm25={outdoorPm25}
+          onClose={() => setDiyGuideOpen(false)}
+        />
+      )}
     </section>
   );
 }

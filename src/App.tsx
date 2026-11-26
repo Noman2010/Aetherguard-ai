@@ -266,6 +266,7 @@ export function App() {
               <div className="lg:col-span-8">
                 <ActionPlanBoard
                   plan={plan}
+                  outdoorPm25={snapshot.pm25}
                   adoptedIds={adoptedIds}
                   onToggleAdopt={handleToggleAdopt}
                   onRegenerate={() =>
