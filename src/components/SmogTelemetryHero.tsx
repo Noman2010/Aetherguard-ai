@@ -11,6 +11,7 @@ import type {
   GenAIPlan,
   LocationProfile,
 } from '../types/airQuality';
+import { getIndiaGrapAdvisory } from '../utils/impactCalculations';
 
 interface SmogTelemetryHeroProps {
   location: LocationProfile;
@@ -26,6 +27,7 @@ export function SmogTelemetryHero({
   loading,
 }: SmogTelemetryHeroProps) {
   const meta = getAqiSeverityMeta(snapshot.usAqi, snapshot.pm25);
+  const grap = getIndiaGrapAdvisory(snapshot.usAqi, snapshot.pm25);
 
   const pollutants = [
     {
@@ -98,6 +100,12 @@ export function SmogTelemetryHero({
                 >
                   <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
                   {meta.label}
+                </span>
+                <span
+                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${grap.badgeClass}`}
+                  title={grap.summary}
+                >
+                  {grap.stage}
                 </span>
                 {snapshot.inversionActive && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-sky-400/30 bg-sky-500/15 px-2.5 py-0.5 text-xs font-medium text-sky-200">
@@ -251,10 +259,10 @@ export function SmogTelemetryHero({
             <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-xs text-amber-100">
               <div className="mb-1 flex items-center gap-1.5 font-semibold text-amber-300">
                 <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
-                Indoor vs. Outdoor Reality
+                Indoor Reality &amp; GRAP Guidance
               </div>
-              {plan.indoorVsOutdoorRatioNote}
-              {location.winterInversionNote ? ` (${location.winterInversionNote})` : ''}
+              {plan.indoorVsOutdoorRatioNote}{' '}
+              {location.country === 'India' ? grap.summary : location.winterInversionNote ?? ''}
             </div>
           </div>
         </div>

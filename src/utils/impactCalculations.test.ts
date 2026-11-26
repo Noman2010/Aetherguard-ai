@@ -7,6 +7,7 @@ import type { GenAIPlan, HouseholdProfile } from '../types/airQuality';
 import {
   buildCommunityBulletinText,
   calculateHouseholdImpact,
+  getIndiaGrapAdvisory,
 } from './impactCalculations';
 
 const SAMPLE_PROFILE: HouseholdProfile = {
@@ -45,6 +46,7 @@ const SAMPLE_PLAN: GenAIPlan = {
         personalExposureDropPct: 40,
         pm25AvoidedUgPerDay: 200,
         co2SavedKgPerWeek: 20,
+        monthlySavingsInr: 3200,
         mechanism: 'Warm engine emission cut',
         plainExplanation: 'Cuts exhaust dose',
       },
@@ -62,6 +64,7 @@ const SAMPLE_PLAN: GenAIPlan = {
         personalExposureDropPct: 60,
         pm25AvoidedUgPerDay: 500,
         co2SavedKgPerWeek: 2.5,
+        monthlySavingsInr: 1800,
         mechanism: 'MERV-13 CADR scrubbing',
         plainExplanation: 'Cuts bedroom PM2.5',
       },
@@ -79,6 +82,7 @@ const SAMPLE_PLAN: GenAIPlan = {
         personalExposureDropPct: 50,
         pm25AvoidedUgPerDay: 300,
         co2SavedKgPerWeek: 10,
+        monthlySavingsInr: 1650,
         mechanism: 'Zero indoor combustion',
         plainExplanation: 'Prevents NO2 spikes',
       },
@@ -102,29 +106,48 @@ describe('impactCalculations', () => {
     expect(summary.combinedExposureDropPct).toBe(0);
     expect(summary.householdDailyPm25AvoidedMg).toBe(0);
     expect(summary.weeklyCo2SavedKg).toBe(0);
-    expect(summary.avoidedCigarettesPerDay).toBe(0);
+    expect(summary.monthlySavingsInr).toBe(0);
+    expect(summary.protectedPersonalPm25).toBe(summary.baselinePersonalPm25);
   });
 
-  it('computes compounding exposure drop capped at 86% and scales by household size', () => {
+  it('computes compounding exposure drop capped at 86%, INR savings, and custom RWA scaling', () => {
     const snap = buildSimulatedSevereSmog(PRESET_CITIES[0]);
-    // 1 - (0.6 * 0.4 * 0.5) = 1 - 0.12 = 88% -> capped at 86%
-    const summary = calculateHouseholdImpact(snap, SAMPLE_PROFILE, SAMPLE_PLAN, [
-      'r1',
-      'r2',
-      'r3',
-    ]);
+    const summary = calculateHouseholdImpact(
+      snap,
+      SAMPLE_PROFILE,
+      SAMPLE_PLAN,
+      ['r1', 'r2', 'r3'],
+      200
+    );
 
     expect(summary.adoptedCount).toBe(3);
     expect(summary.combinedExposureDropPct).toBe(86);
-    // (200 + 500 + 300) * 4 / 1000 = 4.0 mg
+    expect(summary.protectedPersonalPm25).toBeLessThan(
+      summary.baselinePersonalPm25
+    );
     expect(summary.householdDailyPm25AvoidedMg).toBe(4);
     expect(summary.weeklyCo2SavedKg).toBe(32.5);
-    // 32.5 * 12 * 100 / 1000 = 39 tonnes
-    expect(summary.community100Co2TonnesWinter).toBe(39);
+    expect(summary.monthlySavingsInr).toBe(6650);
+    // 32.5 * 12 * 200 / 1000 = 78 tonnes
+    expect(summary.communityCo2TonnesWinter).toBe(78);
     expect(summary.avoidedCigarettesPerDay).toBeGreaterThan(5);
   });
 
-  it('builds a shareable neighborhood clean-air alert bulletin', () => {
+  it('maps India CPCB GRAP stages across AQI thresholds', () => {
+    expect(getIndiaGrapAdvisory(45, 12).stage).toBe('GRAP Normal Watch');
+    expect(getIndiaGrapAdvisory(120, 48).stage).toBe('GRAP Stage I (Poor)');
+    expect(getIndiaGrapAdvisory(195, 95).stage).toBe(
+      'GRAP Stage II (Very Poor)'
+    );
+    expect(getIndiaGrapAdvisory(285, 165).stage).toBe(
+      'GRAP Stage III (Severe)'
+    );
+    expect(getIndiaGrapAdvisory(390, 260).stage).toBe(
+      'GRAP Stage IV (Severe+)'
+    );
+  });
+
+  it('builds a shareable neighborhood clean-air alert bulletin with INR and GRAP info', () => {
     const snap = buildSimulatedSevereSmog(PRESET_CITIES[0]);
     const summary = calculateHouseholdImpact(snap, SAMPLE_PROFILE, SAMPLE_PLAN, [
       'r1',
@@ -138,8 +161,8 @@ describe('impactCalculations', () => {
     );
 
     expect(text).toContain('New Delhi, India');
-    expect(text).toContain(`US AQI ${snap.usAqi}`);
+    expect(text).toContain('GRAP Stage');
+    expect(text).toContain('₹5,000/mo');
     expect(text).toContain('13:00–16:00');
-    expect(text).toContain(`-${summary.combinedExposureDropPct}%`);
   });
 });

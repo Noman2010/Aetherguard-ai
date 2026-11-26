@@ -102,13 +102,29 @@ export function App() {
 
   // Fetch telemetry when location, smog simulation, or Gemini key changes
   useEffect(() => {
-    void refreshTelemetryAndPlan(
-      location,
-      profileRef.current,
-      simulateSevereSmog,
-      geminiApiKey
-    );
-  }, [location, simulateSevereSmog, geminiApiKey, refreshTelemetryAndPlan]);
+    let cancelled = false;
+    async function syncTelemetry() {
+      const aq = await fetchAirQualityForLocation(location, simulateSevereSmog);
+      if (cancelled) return;
+      setSnapshot(aq);
+      setLoadingTelemetry(false);
+
+      const nextPlan = await generatePersonalizedPlan(
+        location,
+        aq,
+        profileRef.current,
+        geminiApiKey
+      );
+      if (cancelled) return;
+      setPlan(nextPlan);
+      syncAdoptedIds(nextPlan);
+      setRegeneratingPlan(false);
+    }
+    void syncTelemetry();
+    return () => {
+      cancelled = true;
+    };
+  }, [location, simulateSevereSmog, geminiApiKey, syncAdoptedIds]);
 
   // Re-synthesize plan when household profile changes without re-fetching weather
   const handleProfileChange = useCallback(
@@ -265,16 +281,24 @@ export function App() {
               </div>
             </div>
 
-            <PromptInspectorModal
-              open={inspectorOpen}
-              artifact={plan.promptArtifact}
-              geminiApiKey={geminiApiKey}
-              onSaveApiKey={handleSaveApiKey}
-              onClose={() => setInspectorOpen(false)}
-            />
+            {inspectorOpen && (
+              <PromptInspectorModal
+                open={inspectorOpen}
+                artifact={plan.promptArtifact}
+                geminiApiKey={geminiApiKey}
+                onSaveApiKey={handleSaveApiKey}
+                onClose={() => setInspectorOpen(false)}
+              />
+            )}
           </>
         )}
       </main>
+
+      <footer className="mt-8 border-t border-slate-800/70 bg-slate-950/80 px-4 py-4 text-center text-[11px] text-slate-400 sm:px-6">
+        AetherGuard AI • Grounded in Open-Meteo Atmospheric Telemetry, WHO 2021
+        Air Quality Guidelines, India CPCB GRAP advisories &amp; Berkeley Earth
+        PM2.5 lung-load equivalence.
+      </footer>
     </div>
   );
 }

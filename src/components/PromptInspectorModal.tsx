@@ -21,10 +21,6 @@ export function PromptInspectorModal({
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    setDraftKey(geminiApiKey);
-  }, [geminiApiKey, open]);
-
-  useEffect(() => {
     if (!open) return;
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();

@@ -88,6 +88,7 @@ export interface ActionImpact {
   personalExposureDropPct: number;
   pm25AvoidedUgPerDay: number;
   co2SavedKgPerWeek: number;
+  monthlySavingsInr?: number;
   mechanism: string;
   plainExplanation: string;
 }
@@ -112,6 +113,14 @@ export interface CleanAirWindow {
   guidance: string;
 }
 
+export interface RoutineTimelineSlot {
+  periodLabel: string;
+  timeRange: string;
+  riskTag: 'Peak Smog' | 'Best Window' | 'Indoor Guard';
+  actionTitle: string;
+  directImpactNote: string;
+}
+
 export interface PromptArtifact {
   systemPrompt: string;
   contextPayload: string;
@@ -126,6 +135,7 @@ export interface GenAIPlan {
   bestOutdoorWindow: CleanAirWindow;
   indoorVsOutdoorRatioNote: string;
   communityMultiplierNote: string;
+  dailyRoutineTimeline?: RoutineTimelineSlot[];
   recommendations: ActionRecommendation[];
   promptArtifact: PromptArtifact;
 }
@@ -146,4 +156,10 @@ export interface AqiSeverityMeta {
   gradientClass: string;
   textColor: string;
   whoMultiple: number;
+}
+
+export interface GrapAdvisory {
+  stage: string;
+  badgeClass: string;
+  summary: string;
 }

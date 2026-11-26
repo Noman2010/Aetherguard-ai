@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
@@ -16,13 +16,18 @@ describe('AetherGuard AI Integration', () => {
     localStorage.clear();
   });
 
-  it('renders telemetry, toggles Severe Smog Simulation, updates HEPA profile, commits actions, and answers advisor questions', async () => {
+  it('renders telemetry, GRAP badge, routine timeline, before/after bar, and full interactive flows', async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    // Wait for initial plan synthesis to appear
+    // Wait for initial plan synthesis & 3-phase routine timeline
     expect(
       await screen.findByText(/Personalized GenAI Action Plan/i)
+    ).toBeInTheDocument();
+    expect(screen.getByText('Morning Inversion Peak')).toBeInTheDocument();
+    expect(screen.getByText('Cleanest Mixing Window')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Your Personal PM2\.5 Exposure: Before vs\. With Committed Choices/i)
     ).toBeInTheDocument();
 
     // 1. Toggle Simulate Winter Smog
@@ -35,13 +40,12 @@ describe('AetherGuard AI Integration', () => {
       await screen.findByRole('button', { name: /Severe Smog Sim: ON/i })
     ).toBeInTheDocument();
     expect(screen.getByText('338')).toBeInTheDocument();
+    expect(screen.getByText(/GRAP Stage III \(Severe\)/i)).toBeInTheDocument();
 
     // 2. Switch Indoor Air Filtration to HEPA Purifier
     await user.click(screen.getByRole('button', { name: 'HEPA Purifier' }));
     await waitFor(() => {
-      expect(
-        screen.getByText(/Clean Sleep Sanctuary/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Clean Sleep Sanctuary/i)).toBeInTheDocument();
     });
 
     // 3. Filter tabs (role="tab")
@@ -55,7 +59,7 @@ describe('AetherGuard AI Integration', () => {
     );
     expect(screen.getAllByRole('article')).toHaveLength(6);
 
-    // 4. Commit an additional action and verify count increments
+    // 4. Commit an additional action and scale RWA homes slider
     expect(
       screen.getByText(/Direct Impact Simulator \(1 of 6 Actions Committed\)/i)
     ).toBeInTheDocument();
@@ -67,7 +71,13 @@ describe('AetherGuard AI Integration', () => {
       screen.getByText(/Direct Impact Simulator \(2 of 6 Actions Committed\)/i)
     ).toBeInTheDocument();
 
-    // Verify Share Neighborhood Alert button works
+    const rwaSlider = screen.getByRole('slider', {
+      name: /Community homes scale/i,
+    });
+    fireEvent.change(rwaSlider, { target: { value: '250' } });
+    expect(screen.getByText('250-Home RWA Scale')).toBeInTheDocument();
+
+    // 5. Verify Share Neighborhood Alert button works
     await user.click(
       screen.getByRole('button', { name: /Share Neighborhood Alert/i })
     );
@@ -75,7 +85,7 @@ describe('AetherGuard AI Integration', () => {
       screen.getByRole('button', { name: /Neighborhood Alert Copied/i })
     ).toBeInTheDocument();
 
-    // 5. Ask AetherGuard AI Advisor via starter chip
+    // 6. Ask AetherGuard AI Advisor via starter chip
     await user.click(
       screen.getByRole('button', { name: 'Should we open windows today?' })
     );
@@ -83,7 +93,7 @@ describe('AetherGuard AI Integration', () => {
       await screen.findByText(/Prevents ~45% indoor PM2\.5 surge/i)
     ).toBeInTheDocument();
 
-    // 6. Open Prompt & Gemini API modal and close with Escape
+    // 7. Open Prompt & Gemini API modal and close with Escape
     await user.click(
       screen.getByRole('button', { name: /Prompt & Gemini API/i })
     );

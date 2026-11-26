@@ -118,6 +118,44 @@ export function ActionPlanBoard({
         </button>
       </div>
 
+      {/* Today's 3-Phase Low-Emission Family Schedule */}
+      {plan.dailyRoutineTimeline && plan.dailyRoutineTimeline.length > 0 && (
+        <div className="grid gap-2.5 rounded-2xl border border-slate-800/90 bg-slate-900/50 p-3.5 sm:grid-cols-3">
+          {plan.dailyRoutineTimeline.map((slot) => (
+            <div
+              key={slot.periodLabel}
+              className="rounded-xl border border-slate-800 bg-slate-950/75 p-3"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-[11px] font-semibold text-cyan-300">
+                  {slot.timeRange}
+                </span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    slot.riskTag === 'Best Window'
+                      ? 'bg-emerald-500/15 text-emerald-300'
+                      : slot.riskTag === 'Peak Smog'
+                        ? 'bg-rose-500/15 text-rose-300'
+                        : 'bg-indigo-500/15 text-indigo-300'
+                  }`}
+                >
+                  {slot.riskTag}
+                </span>
+              </div>
+              <div className="mt-1 text-xs font-bold text-white">
+                {slot.periodLabel}
+              </div>
+              <p className="mt-1 text-[11px] leading-relaxed text-slate-300">
+                {slot.actionTitle}
+              </p>
+              <p className="mt-1 text-[10px] text-emerald-300">
+                Impact: {slot.directImpactNote}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Category Tabs */}
       <div
         role="tablist"
@@ -172,6 +210,12 @@ export function ActionPlanBoard({
                     {catMeta.label}
                   </span>
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                    {typeof rec.impact.monthlySavingsInr === 'number' &&
+                      rec.impact.monthlySavingsInr > 0 && (
+                        <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-amber-200">
+                          Saves ₹{rec.impact.monthlySavingsInr.toLocaleString('en-IN')}/mo
+                        </span>
+                      )}
                     <span className="rounded-md border border-slate-700/80 bg-slate-950/70 px-2 py-0.5">
                       {rec.costLevel}
                     </span>
