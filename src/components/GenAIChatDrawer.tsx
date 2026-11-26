@@ -74,11 +74,14 @@ export function GenAIChatDrawer({
   }
 
   return (
-    <section className="flex flex-col rounded-2xl border border-slate-800/90 bg-slate-900/65 p-4 shadow-xl">
+    <section
+      aria-label="Ask AetherGuard AI Advisor"
+      className="flex flex-col rounded-2xl border border-slate-800/90 bg-slate-900/65 p-4 shadow-xl"
+    >
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-300">
-            <Bot className="h-4 w-4" />
+            <Bot className="h-4 w-4" aria-hidden="true" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-white">
@@ -90,13 +93,17 @@ export function GenAIChatDrawer({
           </div>
         </div>
         <span className="inline-flex items-center gap-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium text-indigo-200">
-          <Sparkles className="h-2.5 w-2.5" />
+          <Sparkles className="h-2.5 w-2.5" aria-hidden="true" />
           {geminiApiKey ? 'Gemini 2.5 Flash' : 'Context Engine'}
         </span>
       </div>
 
       {/* Starter Prompt Chips */}
-      <div className="mb-3 flex flex-wrap gap-1.5">
+      <div
+        role="group"
+        aria-label="Quick advisor questions"
+        className="mb-3 flex flex-wrap gap-1.5"
+      >
         {STARTER_PROMPTS.map((q) => (
           <button
             key={q}
@@ -110,7 +117,12 @@ export function GenAIChatDrawer({
       </div>
 
       {/* Messages Feed */}
-      <div className="mb-3 max-h-72 space-y-2.5 overflow-y-auto pr-1">
+      <div
+        role="log"
+        aria-live="polite"
+        aria-label="Advisor conversation"
+        className="mb-3 max-h-72 space-y-2.5 overflow-y-auto pr-1"
+      >
         {messages.map((m) => (
           <div
             key={m.id}
@@ -119,6 +131,7 @@ export function GenAIChatDrawer({
             }`}
           >
             <div
+              aria-hidden="true"
               className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
                 m.role === 'user'
                   ? 'bg-cyan-500/20 text-cyan-300'
@@ -162,7 +175,11 @@ export function GenAIChatDrawer({
         }}
         className="flex gap-2"
       >
+        <label htmlFor="advisor-question-input" className="sr-only">
+          Ask AetherGuard AI a question
+        </label>
         <input
+          id="advisor-question-input"
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -174,7 +191,7 @@ export function GenAIChatDrawer({
           disabled={!input.trim() || sending}
           className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-400 px-3.5 py-2 text-xs font-bold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-40"
         >
-          <Send className="h-3.5 w-3.5" />
+          <Send className="h-3.5 w-3.5" aria-hidden="true" />
           Ask
         </button>
       </form>

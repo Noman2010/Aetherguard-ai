@@ -28,32 +28,43 @@ A GenAI-powered decision-support assistant built to help families and urban comm
 ## Architecture
 
 ```text
+.github/workflows/ci.yml             # CI pipeline: typecheck, Vitest suite & Vite build
+vercel.json                          # Production HTTP security headers
 src/
 ├── types/airQuality.ts              # Telemetry, household profile, action & prompt types
+├── utils/
+│   ├── impactCalculations.ts        # Compounding PM2.5, lung-load & 100-home impact math
+│   └── impactCalculations.test.ts   # Unit tests for exposure & community bulletin formulas
 ├── services/
 │   ├── airQualityService.ts         # Open-Meteo geocoding, AQI/weather fetch, inversion & fallback
-│   └── genAiService.ts              # Structured prompt builder, Gemini 2.5 Flash JSON API & Q&A advisor
+│   ├── airQualityService.test.ts    # Service tests (live parsing, smog sim & offline fallback)
+│   ├── genAiService.ts              # Structured prompt builder, Gemini 2.5 Flash JSON API & Q&A advisor
+│   └── genAiService.test.ts         # Prompt grounding, Gemini API & advisor tests
 ├── components/
-│   ├── HeaderBar.tsx                # City search, GPS detect, Severe Smog Sim toggle, Prompt Modal trigger
+│   ├── ErrorBoundary.tsx            # Top-level graceful React error boundary
+│   ├── HeaderBar.tsx                # City search combobox, GPS detect, Severe Smog Sim toggle
 │   ├── SmogTelemetryHero.tsx        # US AQI gauge, WHO multiples, 24h clean-air window bar chart
-│   ├── ImpactSimulatorPanel.tsx     # Compounding PM2.5, lung-load & 100-home CO2e community calculator
-│   ├── LifestyleConfigurator.tsx    # Interactive household, health, mobility, fuel & purifier controls
-│   ├── ActionPlanBoard.tsx          # Filterable 4-pillar action cards + Commit Action toggles
+│   ├── ImpactSimulatorPanel.tsx     # Compounding PM2.5, CO2e & Share Neighborhood Alert button
+│   ├── LifestyleConfigurator.tsx    # Accessible household, health, mobility, fuel & purifier controls
+│   ├── ActionPlanBoard.tsx          # Tabbed 4-pillar action cards + Commit Action toggles
 │   ├── GenAIChatDrawer.tsx          # Context-grounded conversational advisor with starter prompts
-│   └── PromptInspectorModal.tsx     # Live system prompt + telemetry JSON viewer & Gemini key config
-└── App.tsx                          # State orchestration and real-time plan synthesis
+│   └── PromptInspectorModal.tsx     # Accessible modal for prompt JSON & Gemini API key config
+├── App.tsx                          # State orchestration and real-time plan synthesis
+└── App.test.tsx                     # End-to-end UI integration tests (Testing Library + Vitest)
 ```
 
 ---
 
-## Local Setup
+## Local Setup & Verification
 
 ### Prerequisites
 - Node.js 20+ and npm
 
-### Install & Run
+### Install, Test & Run
 ```bash
 npm install
+npm run typecheck
+npm test
 npm run dev
 ```
 

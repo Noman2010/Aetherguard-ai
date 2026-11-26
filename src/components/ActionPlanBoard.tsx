@@ -83,12 +83,12 @@ export function ActionPlanBoard({
       : plan.recommendations.filter((r) => r.category === activeTab);
 
   return (
-    <section className="space-y-4">
+    <section aria-label="Personalized GenAI Action Plan" className="space-y-4">
       {/* Header + Filter Pills */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-cyan-400" />
+            <Sparkles className="h-4 w-4 text-cyan-400" aria-hidden="true" />
             <h2 className="text-base font-bold text-white sm:text-lg">
               Personalized GenAI Action Plan &amp; Impact Breakdown
             </h2>
@@ -112,19 +112,26 @@ export function ActionPlanBoard({
         >
           <RefreshCw
             className={`h-3.5 w-3.5 ${regenerating ? 'animate-spin' : ''}`}
+            aria-hidden="true"
           />
           {regenerating ? 'Synthesizing...' : 'Refresh AI Plan'}
         </button>
       </div>
 
       {/* Category Tabs */}
-      <div className="flex flex-wrap gap-1.5">
+      <div
+        role="tablist"
+        aria-label="Filter recommendations by category"
+        className="flex flex-wrap gap-1.5"
+      >
         {CATEGORY_TABS.map((tab) => {
           const active = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               type="button"
+              role="tab"
+              aria-selected={active}
               onClick={() => setActiveTab(tab.id)}
               className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
                 active
@@ -139,7 +146,7 @@ export function ActionPlanBoard({
       </div>
 
       {/* Cards Grid */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div role="tabpanel" className="grid gap-4 md:grid-cols-2">
         {visibleRecs.map((rec: ActionRecommendation) => {
           const catMeta = getCategoryMeta(rec.category);
           const CatIcon = catMeta.Icon;
@@ -161,7 +168,7 @@ export function ActionPlanBoard({
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${catMeta.badge}`}
                   >
-                    <CatIcon className="h-3 w-3" />
+                    <CatIcon className="h-3 w-3" aria-hidden="true" />
                     {catMeta.label}
                   </span>
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
@@ -224,17 +231,18 @@ export function ActionPlanBoard({
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-300">
-                      <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                      <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       Direct Impact Explained
                     </div>
                     <button
                       type="button"
+                      aria-expanded={isExpanded}
                       onClick={() =>
                         setExpandedWhyId(isExpanded ? null : rec.id)
                       }
                       className="inline-flex items-center gap-1 text-[11px] font-medium text-cyan-300 hover:text-cyan-200"
                     >
-                      <Info className="h-3 w-3" />
+                      <Info className="h-3 w-3" aria-hidden="true" />
                       {isExpanded ? 'Hide Science' : 'Science Mechanism'}
                     </button>
                   </div>
@@ -259,6 +267,7 @@ export function ActionPlanBoard({
                 </span>
                 <button
                   type="button"
+                  aria-pressed={isAdopted}
                   onClick={() => onToggleAdopt(rec.id)}
                   className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
                     isAdopted
@@ -268,12 +277,12 @@ export function ActionPlanBoard({
                 >
                   {isAdopted ? (
                     <>
-                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                       Committed
                     </>
                   ) : (
                     <>
-                      <Circle className="h-3.5 w-3.5" />
+                      <Circle className="h-3.5 w-3.5" aria-hidden="true" />
                       Commit Action
                     </>
                   )}

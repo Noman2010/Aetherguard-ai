@@ -85,11 +85,14 @@ export function LifestyleConfigurator({
   }
 
   return (
-    <aside className="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-5 shadow-xl">
+    <aside
+      aria-label="Household and Lifestyle Context"
+      className="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-5 shadow-xl"
+    >
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-300">
-            <SlidersHorizontal className="h-4 w-4" />
+            <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-white">
@@ -104,6 +107,7 @@ export function LifestyleConfigurator({
           <span className="text-slate-400">Size:</span>
           <button
             type="button"
+            aria-label="Decrease household size"
             onClick={() =>
               onChange({
                 ...profile,
@@ -114,11 +118,15 @@ export function LifestyleConfigurator({
           >
             -
           </button>
-          <span className="font-mono font-bold text-cyan-300">
+          <span
+            aria-live="polite"
+            className="font-mono font-bold text-cyan-300"
+          >
             {profile.householdSize}
           </span>
           <button
             type="button"
+            aria-label="Increase household size"
             onClick={() =>
               onChange({
                 ...profile,
@@ -135,41 +143,46 @@ export function LifestyleConfigurator({
       <div className="space-y-4">
         {/* Household Type */}
         <div>
-          <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-            <Home className="h-3.5 w-3.5 text-cyan-400" />
-            Household Role
-          </label>
-          <div className="grid grid-cols-2 gap-1.5">
-            {HOUSEHOLD_TYPES.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => onChange({ ...profile, householdType: opt.id })}
-                className={`rounded-lg border px-2.5 py-1.5 text-left text-xs font-medium transition ${
-                  profile.householdType === opt.id
-                    ? 'border-cyan-400/60 bg-cyan-500/15 text-cyan-200'
-                    : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700 hover:text-slate-200'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+            <Home className="h-3.5 w-3.5 text-cyan-400" aria-hidden="true" />
+            <span>Household Role</span>
+          </div>
+          <div role="group" aria-label="Household Role" className="grid grid-cols-2 gap-1.5">
+            {HOUSEHOLD_TYPES.map((opt) => {
+              const active = profile.householdType === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => onChange({ ...profile, householdType: opt.id })}
+                  className={`rounded-lg border px-2.5 py-1.5 text-left text-xs font-medium transition ${
+                    active
+                      ? 'border-cyan-400/60 bg-cyan-500/15 text-cyan-200'
+                      : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Sensitivities */}
         <div>
-          <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-            <HeartPulse className="h-3.5 w-3.5 text-rose-400" />
-            Health Sensitivities
-          </label>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+            <HeartPulse className="h-3.5 w-3.5 text-rose-400" aria-hidden="true" />
+            <span>Health Sensitivities</span>
+          </div>
+          <div role="group" aria-label="Health Sensitivities" className="flex flex-wrap gap-1.5">
             {SENSITIVITIES.map((opt) => {
               const active = profile.sensitivities.includes(opt.id);
               return (
                 <button
                   key={opt.id}
                   type="button"
+                  aria-pressed={active}
                   onClick={() => toggleSensitivity(opt.id)}
                   className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
                     active
@@ -186,101 +199,129 @@ export function LifestyleConfigurator({
 
         {/* Commute */}
         <div>
-          <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-            <Car className="h-3.5 w-3.5 text-amber-400" />
-            Daily Mobility
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            {COMMUTE_MODES.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => onChange({ ...profile, commuteMode: opt.id })}
-                className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition ${
-                  profile.commuteMode === opt.id
-                    ? 'border-amber-400/60 bg-amber-500/15 text-amber-200'
-                    : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+            <Car className="h-3.5 w-3.5 text-amber-400" aria-hidden="true" />
+            <span>Daily Mobility</span>
+          </div>
+          <div role="group" aria-label="Daily Mobility" className="flex flex-wrap gap-1.5">
+            {COMMUTE_MODES.map((opt) => {
+              const active = profile.commuteMode === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => onChange({ ...profile, commuteMode: opt.id })}
+                  className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition ${
+                    active
+                      ? 'border-amber-400/60 bg-amber-500/15 text-amber-200'
+                      : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Cooking & Heating */}
         <div>
-          <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-            <Flame className="h-3.5 w-3.5 text-orange-400" />
-            Cooking &amp; Heating Source
-          </label>
-          <div className="grid grid-cols-2 gap-1.5">
-            {HEATING_COOKING.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => onChange({ ...profile, heatingCooking: opt.id })}
-                className={`rounded-lg border px-2.5 py-1.5 text-left text-[11px] font-medium transition ${
-                  profile.heatingCooking === opt.id
-                    ? 'border-orange-400/60 bg-orange-500/15 text-orange-200'
-                    : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+            <Flame className="h-3.5 w-3.5 text-orange-400" aria-hidden="true" />
+            <span>Cooking &amp; Heating Source</span>
+          </div>
+          <div
+            role="group"
+            aria-label="Cooking and Heating Source"
+            className="grid grid-cols-2 gap-1.5"
+          >
+            {HEATING_COOKING.map((opt) => {
+              const active = profile.heatingCooking === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => onChange({ ...profile, heatingCooking: opt.id })}
+                  className={`rounded-lg border px-2.5 py-1.5 text-left text-[11px] font-medium transition ${
+                    active
+                      ? 'border-orange-400/60 bg-orange-500/15 text-orange-200'
+                      : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Filtration + Ventilation */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
           <div>
-            <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-              <Baby className="h-3.5 w-3.5 text-emerald-400" />
-              Indoor Air Filtration
-            </label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {PURIFIER_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() =>
-                    onChange({ ...profile, purifierAccess: opt.id })
-                  }
-                  className={`rounded-lg border px-2 py-1.5 text-center text-[11px] font-medium transition ${
-                    profile.purifierAccess === opt.id
-                      ? 'border-emerald-400/60 bg-emerald-500/15 text-emerald-200'
-                      : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+              <Baby className="h-3.5 w-3.5 text-emerald-400" aria-hidden="true" />
+              <span>Indoor Air Filtration</span>
+            </div>
+            <div
+              role="group"
+              aria-label="Indoor Air Filtration"
+              className="grid grid-cols-3 gap-1.5"
+            >
+              {PURIFIER_OPTIONS.map((opt) => {
+                const active = profile.purifierAccess === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() =>
+                      onChange({ ...profile, purifierAccess: opt.id })
+                    }
+                    className={`rounded-lg border px-2 py-1.5 text-center text-[11px] font-medium transition ${
+                      active
+                        ? 'border-emerald-400/60 bg-emerald-500/15 text-emerald-200'
+                        : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           <div>
-            <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-              <Wind className="h-3.5 w-3.5 text-sky-400" />
-              Home Envelope
-            </label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {VENTILATION_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() =>
-                    onChange({ ...profile, homeVentilation: opt.id })
-                  }
-                  className={`rounded-lg border px-2 py-1.5 text-center text-[11px] font-medium transition ${
-                    profile.homeVentilation === opt.id
-                      ? 'border-sky-400/60 bg-sky-500/15 text-sky-200'
-                      : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+              <Wind className="h-3.5 w-3.5 text-sky-400" aria-hidden="true" />
+              <span>Home Envelope</span>
+            </div>
+            <div
+              role="group"
+              aria-label="Home Envelope"
+              className="grid grid-cols-3 gap-1.5"
+            >
+              {VENTILATION_OPTIONS.map((opt) => {
+                const active = profile.homeVentilation === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() =>
+                      onChange({ ...profile, homeVentilation: opt.id })
+                    }
+                    className={`rounded-lg border px-2 py-1.5 text-center text-[11px] font-medium transition ${
+                      active
+                        ? 'border-sky-400/60 bg-sky-500/15 text-sky-200'
+                        : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

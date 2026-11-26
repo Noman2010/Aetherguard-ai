@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActionPlanBoard } from './components/ActionPlanBoard';
 import { GenAIChatDrawer } from './components/GenAIChatDrawer';
 import { HeaderBar } from './components/HeaderBar';
@@ -31,17 +31,23 @@ const DEFAULT_PROFILE: HouseholdProfile = {
 
 const STORAGE_KEY = 'aetherguard_gemini_key';
 
+function getInitialGeminiKey(): string {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return stored;
+  } catch {
+    // Ignore storage access errors in restricted environments
+  }
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+  return typeof envKey === 'string' ? envKey.trim() : '';
+}
+
 export function App() {
   const [location, setLocation] = useState<LocationProfile>(PRESET_CITIES[0]);
   const [profile, setProfile] = useState<HouseholdProfile>(DEFAULT_PROFILE);
+  const profileRef = useRef<HouseholdProfile>(DEFAULT_PROFILE);
   const [simulateSevereSmog, setSimulateSevereSmog] = useState(false);
-  const [geminiApiKey, setGeminiApiKey] = useState<string>(() => {
-    try {
-      return localStorage.getItem(STORAGE_KEY) || '';
-    } catch {
-      return '';
-    }
-  });
+  const [geminiApiKey, setGeminiApiKey] = useState<string>(getInitialGeminiKey);
 
   const [snapshot, setSnapshot] = useState<AirQualitySnapshot>(() =>
     buildSimulatedSevereSmog(PRESET_CITIES[0])
@@ -55,6 +61,18 @@ export function App() {
   ]);
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [locatingUser, setLocatingUser] = useState(false);
+  const [locationNotice, setLocationNotice] = useState<string | null>(null);
+
+  const syncAdoptedIds = useCallback((nextPlan: GenAIPlan) => {
+    setAdoptedIds((prev) => {
+      const valid = prev.filter((id) =>
+        nextPlan.recommendations.some((r) => r.id === id)
+      );
+      return valid.length > 0
+        ? valid
+        : nextPlan.recommendations.slice(0, 2).map((r) => r.id);
+    });
+  }, []);
 
   const refreshTelemetryAndPlan = useCallback(
     async (
@@ -76,32 +94,26 @@ export function App() {
         apiKey
       );
       setPlan(nextPlan);
-      setAdoptedIds((prev) => {
-        const valid = prev.filter((id) =>
-          nextPlan.recommendations.some((r) => r.id === id)
-        );
-        return valid.length > 0
-          ? valid
-          : nextPlan.recommendations.slice(0, 2).map((r) => r.id);
-      });
+      syncAdoptedIds(nextPlan);
       setRegeneratingPlan(false);
     },
-    []
+    [syncAdoptedIds]
   );
 
-  // Fetch telemetry when location or severe simulation changes
+  // Fetch telemetry when location, smog simulation, or Gemini key changes
   useEffect(() => {
     void refreshTelemetryAndPlan(
       location,
-      profile,
+      profileRef.current,
       simulateSevereSmog,
       geminiApiKey
     );
   }, [location, simulateSevereSmog, geminiApiKey, refreshTelemetryAndPlan]);
 
-  // Re-synthesize plan when household profile changes (without refetching weather)
+  // Re-synthesize plan when household profile changes without re-fetching weather
   const handleProfileChange = useCallback(
     (nextProfile: HouseholdProfile) => {
+      profileRef.current = nextProfile;
       setProfile(nextProfile);
       setRegeneratingPlan(true);
       void generatePersonalizedPlan(
@@ -111,18 +123,11 @@ export function App() {
         geminiApiKey
       ).then((nextPlan) => {
         setPlan(nextPlan);
-        setAdoptedIds((prev) => {
-          const valid = prev.filter((id) =>
-            nextPlan.recommendations.some((r) => r.id === id)
-          );
-          return valid.length > 0
-            ? valid
-            : nextPlan.recommendations.slice(0, 2).map((r) => r.id);
-        });
+        syncAdoptedIds(nextPlan);
         setRegeneratingPlan(false);
       });
     },
-    [location, snapshot, geminiApiKey]
+    [location, snapshot, geminiApiKey, syncAdoptedIds]
   );
 
   function handleToggleAdopt(id: string) {
@@ -132,20 +137,25 @@ export function App() {
   }
 
   function handleSaveApiKey(nextKey: string) {
-    setGeminiApiKey(nextKey);
+    const cleaned = nextKey.trim();
+    setGeminiApiKey(cleaned);
     try {
-      if (nextKey) {
-        localStorage.setItem(STORAGE_KEY, nextKey);
+      if (cleaned) {
+        localStorage.setItem(STORAGE_KEY, cleaned);
       } else {
         localStorage.removeItem(STORAGE_KEY);
       }
     } catch {
-      // ignore storage issues
+      // Ignore storage issues
     }
   }
 
   function handleUseMyLocation() {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setLocationNotice('Geolocation is not supported by your browser.');
+      return;
+    }
+    setLocationNotice(null);
     setLocatingUser(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -162,6 +172,9 @@ export function App() {
       },
       () => {
         setLocatingUser(false);
+        setLocationNotice(
+          'Location permission declined. Search for your city above instead.'
+        );
       },
       { timeout: 6000 }
     );
@@ -169,19 +182,39 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:bg-cyan-400 focus:px-3 focus:py-2 focus:text-xs focus:font-bold focus:text-slate-950"
+      >
+        Skip to main content
+      </a>
+
       <HeaderBar
         location={location}
         snapshot={snapshot}
         simulateSevereSmog={simulateSevereSmog}
         hasGeminiKey={Boolean(geminiApiKey)}
-        onSelectLocation={setLocation}
+        onSelectLocation={(loc) => {
+          setLocationNotice(null);
+          setLocation(loc);
+        }}
         onToggleSimulateSmog={() => setSimulateSevereSmog((v) => !v)}
         onOpenPromptInspector={() => setInspectorOpen(true)}
         onUseMyLocation={handleUseMyLocation}
         locatingUser={locatingUser}
       />
 
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+      <main id="main-content" className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+        {locationNotice && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-xs text-amber-200"
+          >
+            {locationNotice}
+          </div>
+        )}
+
         {plan && (
           <>
             <SmogTelemetryHero
